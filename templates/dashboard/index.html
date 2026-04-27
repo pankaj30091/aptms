@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h2 class="text-xl font-bold">Good {{ greeting }}, {{ current_user.full_name.split()[0] }}</h2>
+  <p class="text-sm text-gray-500">{{ today }}</p>
+</div>
+
+<div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+  <!-- Placeholder cards — will be wired up in later phases -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 col-span-2 sm:col-span-1">
+    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Check-in Status</p>
+    <p class="text-3xl font-bold text-primary mt-1">—</p>
+    <p class="text-xs text-gray-500 mt-1">Coming soon</p>
+  </div>
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Tasks Today</p>
+    <p class="text-3xl font-bold text-green-600 mt-1">—</p>
+    <p class="text-xs text-gray-500 mt-1">Coming soon</p>
+  </div>
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Open Requests</p>
+    <p class="text-3xl font-bold text-orange-500 mt-1">—</p>
+    <p class="text-xs text-gray-500 mt-1">Coming soon</p>
+  </div>
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Pending Leaves</p>
+    <p class="text-3xl font-bold text-yellow-500 mt-1">—</p>
+    <p class="text-xs text-gray-500 mt-1">Coming soon</p>
+  </div>
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Expiring Docs</p>
+    <p class="text-3xl font-bold text-red-500 mt-1">—</p>
+    <p class="text-xs text-gray-500 mt-1">Coming soon</p>
+  </div>
+</div>
+{% endblock %}

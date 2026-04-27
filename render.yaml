@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: aptms
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --worker-class gevent --workers 4 --bind 0.0.0.0:$PORT --timeout 60 --preload
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aptms-db
+          property: connectionString
+      - key: BUILDING_NAME
+        value: My Apartment Complex
+      - key: BUILDING_LATITUDE
+        value: "18.5204"
+      - key: BUILDING_LONGITUDE
+        value: "73.8567"
+      - key: GEOFENCE_RADIUS_M
+        value: "50"
+      - key: SEED_ADMIN_EMAIL
+        value: admin@aptms.local
+      - key: SEED_ADMIN_PASSWORD
+        sync: false   # set manually in Render dashboard
+
+databases:
+  - name: aptms-db
+    databaseName: aptms_db
+    user: aptms_user
+    plan: free

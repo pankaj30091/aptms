@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h2 class="text-xl font-bold">Users</h2>
+  <a href="{{ url_for('users.create_user') }}"
+     class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-colors">
+    + New User
+  </a>
+</div>
+
+<div class="space-y-3">
+  {% for user in users %}
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between">
+    <div>
+      <p class="font-semibold text-gray-900">{{ user.full_name }}</p>
+      <p class="text-sm text-gray-500">{{ user.email }}</p>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="text-xs px-2 py-0.5 rounded-full font-medium
+          {% if user.role == 'admin' %}bg-purple-100 text-purple-700
+          {% elif user.role == 'manager' %}bg-blue-100 text-blue-700
+          {% else %}bg-gray-100 text-gray-600{% endif %}">
+          {{ user.role }}
+        </span>
+        {% if not user.is_active %}
+        <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-medium">inactive</span>
+        {% endif %}
+        {% if user.flat_number %}
+        <span class="text-xs text-gray-400">Flat {{ user.flat_number }}</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="flex items-center gap-2 ml-3">
+      <a href="{{ url_for('users.edit_user', user_id=user.id) }}"
+         class="text-sm text-primary hover:underline">Edit</a>
+      {% if user.id != current_user.id %}
+      <form method="POST" action="{{ url_for('users.delete_user', user_id=user.id) }}"
+            onsubmit="return confirm('Delete {{ user.full_name }}?')">
+        <button type="submit" class="text-sm text-red-500 hover:underline">Delete</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <p class="text-center text-gray-400 py-8">No users yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}
