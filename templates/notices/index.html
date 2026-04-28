@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Notices{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h2 class="text-xl font-bold">Notices</h2>
+  {% if current_user.is_manager or current_user.is_admin %}
+  <a href="{{ url_for('notices.new_notice') }}"
+     class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-blue-700">+ Post</a>
+  {% endif %}
+</div>
+
+<div class="space-y-3">
+  {% for notice in notices %}
+  {% if notice.is_active() %}
+  <div class="bg-white rounded-2xl border shadow-sm p-4
+    {{ 'border-orange-200' if notice.category == 'urgent' else 'border-gray-100' }}">
+    <div class="flex items-start gap-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 flex-wrap mb-1">
+          {% if notice.pinned %}
+          <span class="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-bold">Pinned</span>
+          {% endif %}
+          {% if notice.category %}
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold
+            {% if notice.category == 'urgent' %}bg-red-100 text-red-700
+            {% elif notice.category == 'maintenance' %}bg-yellow-100 text-yellow-700
+            {% elif notice.category == 'event' %}bg-purple-100 text-purple-700
+            {% else %}bg-gray-100 text-gray-500{% endif %}">
+            {{ notice.category | capitalize }}
+          </span>
+          {% endif %}
+          <span class="text-xs text-gray-400 ml-auto">{{ notice.created_at.strftime('%d %b %Y') }}</span>
+        </div>
+        <p class="font-semibold text-sm mb-1">{{ notice.title }}</p>
+        <p class="text-sm text-gray-600 whitespace-pre-line">{{ notice.body }}</p>
+        <p class="text-xs text-gray-400 mt-2">— {{ notice.author.full_name }}</p>
+        {% if notice.expires_at %}
+        <p class="text-xs text-gray-400">Expires: {{ notice.expires_at.strftime('%d %b %Y') }}</p>
+        {% endif %}
+      </div>
+      {% if current_user.is_manager or current_user.is_admin %}
+      <div class="flex flex-col gap-2 flex-shrink-0">
+        <a href="{{ url_for('notices.edit_notice', notice_id=notice.id) }}"
+           class="text-xs text-primary font-semibold">Edit</a>
+        <form method="POST" action="{{ url_for('notices.delete_notice', notice_id=notice.id) }}"
+              onsubmit="return confirm('Remove this notice?')">
+          <button type="submit" class="text-xs text-red-500 font-semibold">Remove</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  {% else %}
+  <p class="text-center text-gray-400 py-8 text-sm">No notices posted.</p>
+  {% endfor %}
+</div>
+{% endblock %}

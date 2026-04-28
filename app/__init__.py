@@ -40,7 +40,7 @@ def create_app():
     login_manager.login_message_category = "warning"
 
     # Import models so Flask-Migrate can detect them
-    from app.models import user, audit, checkin, attendance, leave, task, document, service_request  # noqa: F401
+    from app.models import user, audit, checkin, attendance, leave, task, document, service_request, notice  # noqa: F401
 
     from app.routes.auth import auth_bp
     from app.routes.users import users_bp
@@ -52,6 +52,9 @@ def create_app():
     from app.routes.documents import documents_bp
     from app.routes.action_items import action_items_bp
     from app.routes.service_requests import service_requests_bp
+    from app.routes.notices import notices_bp
+    from app.routes.audit_log import audit_log_bp
+    from app.routes.profile import profile_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(users_bp)
@@ -63,6 +66,9 @@ def create_app():
     app.register_blueprint(documents_bp)
     app.register_blueprint(action_items_bp)
     app.register_blueprint(service_requests_bp)
+    app.register_blueprint(notices_bp)
+    app.register_blueprint(audit_log_bp)
+    app.register_blueprint(profile_bp)
 
     app.jinja_env.globals["enumerate"] = enumerate
     app.jinja_env.globals["min"] = min

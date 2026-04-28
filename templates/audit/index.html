@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Audit Log{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-3 mb-4">
+  <a href="{{ url_for('users.list_users') }}" class="text-gray-400 hover:text-gray-600">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+  </a>
+  <h2 class="text-xl font-bold">Audit Log</h2>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+  <form method="GET" class="flex gap-2 flex-wrap">
+    <select name="table" class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary">
+      <option value="">All tables</option>
+      {% for t in tables %}
+      <option value="{{ t }}" {{ 'selected' if table_filter == t else '' }}>{{ table_labels.get(t, t) }}</option>
+      {% endfor %}
+    </select>
+    <select name="action" class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary">
+      <option value="">All actions</option>
+      {% for a in ['CREATE','UPDATE','DELETE'] %}
+      <option value="{{ a }}" {{ 'selected' if action_filter == a else '' }}>{{ a }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-blue-700">Filter</button>
+    {% if table_filter or action_filter %}
+    <a href="{{ url_for('audit_log.index') }}" class="px-4 py-2 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Log entries -->
+<div class="space-y-2">
+  {% for log in logs.items %}
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-3">
+    <div class="flex items-center gap-2 flex-wrap mb-1">
+      <span class="text-xs px-2 py-0.5 rounded-full font-bold
+        {% if log.action == 'CREATE' %}bg-green-100 text-green-700
+        {% elif log.action == 'DELETE' %}bg-red-100 text-red-700
+        {% else %}bg-blue-100 text-blue-700{% endif %}">
+        {{ log.action }}
+      </span>
+      <span class="text-xs font-semibold text-gray-700">{{ table_labels.get(log.table_name, log.table_name) }} #{{ log.record_id }}</span>
+      <span class="text-xs text-gray-400 ml-auto">{{ log.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+    </div>
+    <p class="text-xs text-gray-500">by {{ log.user_email }}</p>
+    {% if log.old_values or log.new_values %}
+    <details class="mt-2">
+      <summary class="text-xs text-primary cursor-pointer">Show changes</summary>
+      <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+        {% if log.old_values %}
+        <div>
+          <p class="font-medium text-gray-500 mb-1">Before</p>
+          <pre class="bg-gray-50 rounded-lg p-2 overflow-x-auto text-gray-600 whitespace-pre-wrap break-all">{{ log.old_values | tojson(indent=2) }}</pre>
+        </div>
+        {% endif %}
+        {% if log.new_values %}
+        <div>
+          <p class="font-medium text-gray-500 mb-1">After</p>
+          <pre class="bg-gray-50 rounded-lg p-2 overflow-x-auto text-gray-600 whitespace-pre-wrap break-all">{{ log.new_values | tojson(indent=2) }}</pre>
+        </div>
+        {% endif %}
+      </div>
+    </details>
+    {% endif %}
+  </div>
+  {% else %}
+  <p class="text-center text-gray-400 py-8 text-sm">No audit entries found.</p>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if logs.pages > 1 %}
+<div class="flex justify-center gap-2 mt-4">
+  {% if logs.has_prev %}
+  <a href="{{ url_for('audit_log.index', page=logs.prev_num, table=table_filter, action=action_filter) }}"
+     class="px-4 py-2 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl">← Prev</a>
+  {% endif %}
+  <span class="px-4 py-2 text-sm text-gray-500">{{ logs.page }} / {{ logs.pages }}</span>
+  {% if logs.has_next %}
+  <a href="{{ url_for('audit_log.index', page=logs.next_num, table=table_filter, action=action_filter) }}"
+     class="px-4 py-2 bg-gray-100 text-gray-600 text-sm font-semibold rounded-xl">Next →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

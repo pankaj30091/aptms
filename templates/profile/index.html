@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-3 mb-4">
+  <a href="{{ url_for('dashboard.index') }}" class="text-gray-400 hover:text-gray-600">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+  </a>
+  <h2 class="text-xl font-bold">My Profile</h2>
+</div>
+
+<!-- Role badge -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4 flex items-center gap-4">
+  <div class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+    {{ current_user.full_name[0].upper() }}
+  </div>
+  <div>
+    <p class="font-semibold text-base">{{ current_user.full_name }}</p>
+    <p class="text-sm text-gray-500">{{ current_user.email }}</p>
+    <span class="text-xs px-2 py-0.5 rounded-full font-semibold mt-1 inline-block
+      {% if current_user.is_admin %}bg-purple-100 text-purple-700
+      {% elif current_user.is_manager %}bg-blue-100 text-blue-700
+      {% else %}bg-gray-100 text-gray-500{% endif %}">
+      {{ current_user.role | capitalize }}
+    </span>
+  </div>
+</div>
+
+<!-- Edit profile -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
+  <h3 class="text-sm font-semibold mb-3">Edit Profile</h3>
+  <form method="POST" class="space-y-3">
+    <input type="hidden" name="action" value="update_profile" />
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">Full Name <span class="text-red-500">*</span></label>
+      <input type="text" name="full_name" required value="{{ current_user.full_name }}"
+             class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+      <input type="tel" name="phone" value="{{ current_user.phone or '' }}"
+             class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+    </div>
+    <button type="submit" class="w-full py-2.5 bg-primary hover:bg-blue-700 text-white font-semibold rounded-xl text-sm">
+      Save Profile
+    </button>
+  </form>
+</div>
+
+<!-- Change password -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+  <h3 class="text-sm font-semibold mb-3">Change Password</h3>
+  <form method="POST" class="space-y-3">
+    <input type="hidden" name="action" value="change_password" />
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">Current Password</label>
+      <input type="password" name="current_password" required autocomplete="current-password"
+             class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">New Password</label>
+      <input type="password" name="new_password" required minlength="8" autocomplete="new-password"
+             class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">Confirm New Password</label>
+      <input type="password" name="confirm_password" required minlength="8" autocomplete="new-password"
+             class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+    </div>
+    <button type="submit" class="w-full py-2.5 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-xl text-sm">
+      Change Password
+    </button>
+  </form>
+</div>
+{% endblock %}
