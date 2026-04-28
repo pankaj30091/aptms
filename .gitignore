@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+aptms.db
+*.db
+*.sqlite
+*.log
+logs/
+.venv/
+venv/
