@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Check In/Out{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h2 class="text-xl font-bold">Check In / Out</h2>
+  <p class="text-sm text-gray-500">{{ today.strftime('%A, %d %B %Y') }}</p>
+</div>
+
+<!-- GPS Check-in Card -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
+  <div id="status-msg" class="text-sm text-gray-500 mb-4">
+    {% if is_checked_in %}
+      <span class="text-green-600 font-semibold">● Checked in</span>
+      — tap below to check out
+    {% else %}
+      <span class="text-gray-400 font-semibold">● Not checked in</span>
+      — tap below to check in
+    {% endif %}
+  </div>
+
+  <button id="checkin-btn"
+          data-event="{{ 'check_out' if is_checked_in else 'check_in' }}"
+          class="w-full py-4 rounded-xl font-bold text-white text-lg transition-colors
+            {{ 'bg-red-500 hover:bg-red-600' if is_checked_in else 'bg-green-500 hover:bg-green-600' }}">
+    {{ 'Check Out' if is_checked_in else 'Check In' }}
+  </button>
+
+  <p id="gps-msg" class="text-xs text-gray-400 text-center mt-3">Getting your location…</p>
+</div>
+
+<!-- Today's events -->
+{% if todays_events %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+  <h3 class="font-semibold text-sm text-gray-700 mb-3">Today's Activity</h3>
+  <div class="space-y-2">
+    {% for e in todays_events %}
+    <div class="flex items-center justify-between text-sm">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if e.event_type == 'check_in' else 'bg-red-400' }}"></span>
+        <span class="font-medium">{{ 'Check In' if e.event_type == 'check_in' else 'Check Out' }}</span>
+      </div>
+      <div class="text-gray-500 text-right">
+        <span>{{ e.recorded_at.strftime('%H:%M') }}</span>
+        <span class="text-xs ml-2 text-gray-400">{{ e.distance_m }}m away</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Admin: all managers today -->
+{% if all_today %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+  <h3 class="font-semibold text-sm text-gray-700 mb-3">All Managers Today</h3>
+  <div class="space-y-2">
+    {% for item in all_today %}
+    <div class="flex items-center justify-between text-sm">
+      <span class="font-medium text-gray-800">{{ item.user.full_name }}</span>
+      <span class="px-2 py-0.5 rounded-full text-xs font-medium
+        {% if item.status == 'check_in' %}bg-green-100 text-green-700
+        {% elif item.status == 'check_out' %}bg-gray-100 text-gray-600
+        {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+        {% if item.status == 'check_in' %}Checked In
+        {% elif item.status == 'check_out' %}Checked Out
+        {% else %}Not In{% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<a href="{{ url_for('checkin.history') }}"
+   class="block text-center text-sm text-primary hover:underline mt-2">
+  View history →
+</a>
+
+<script>
+const btn = document.getElementById('checkin-btn');
+const gpsMsg = document.getElementById('gps-msg');
+const statusMsg = document.getElementById('status-msg');
+
+if (!navigator.geolocation) {
+  gpsMsg.textContent = 'Geolocation not supported by your browser.';
+  btn.disabled = true;
+} else {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => { gpsMsg.textContent = `Location ready (±${Math.round(pos.coords.accuracy)}m accuracy).`; },
+    (err) => { gpsMsg.textContent = 'Could not get location. Allow location access and retry.'; btn.disabled = true; }
+  );
+}
+
+btn.addEventListener('click', async () => {
+  btn.disabled = true;
+  gpsMsg.textContent = 'Getting your location…';
+
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const eventType = btn.dataset.event;
+    gpsMsg.textContent = 'Recording…';
+
+    try {
+      const resp = await fetch('/checkin/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          event_type: eventType,
+        }),
+      });
+      const data = await resp.json();
+
+      if (data.success) {
+        gpsMsg.textContent = `${eventType === 'check_in' ? 'Checked in' : 'Checked out'} at ${data.recorded_at} (${data.distance_m}m from building).`;
+        // Reload to refresh status
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        gpsMsg.textContent = data.error || 'Failed. Try again.';
+        btn.disabled = false;
+      }
+    } catch (e) {
+      gpsMsg.textContent = 'Network error. Try again.';
+      btn.disabled = false;
+    }
+  }, (err) => {
+    gpsMsg.textContent = 'Location access denied. Enable location and retry.';
+    btn.disabled = false;
+  }, { enableHighAccuracy: true, timeout: 10000 });
+});
+</script>
+{% endblock %}

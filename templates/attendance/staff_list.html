@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Staff{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <div class="flex items-center gap-3">
+    <a href="{{ url_for('attendance.index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <h2 class="text-xl font-bold">Staff</h2>
+  </div>
+  <a href="{{ url_for('attendance.staff_new') }}"
+     class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-blue-700">
+    + Add Staff
+  </a>
+</div>
+
+<div class="space-y-3">
+  {% for s in staff %}
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between">
+    <div>
+      <p class="font-semibold text-gray-900">{{ s.full_name }}</p>
+      <div class="flex items-center gap-2 mt-0.5">
+        <span class="text-xs text-gray-500">
+          {{ roles | selectattr('0', 'eq', s.role) | map(attribute='1') | first | default(s.role) }}
+        </span>
+        {% if s.phone %}
+        <span class="text-xs text-gray-400">· {{ s.phone }}</span>
+        {% endif %}
+        {% if not s.is_active %}
+        <span class="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full">inactive</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="{{ url_for('attendance.staff_edit', staff_id=s.id) }}" class="text-sm text-primary hover:underline">Edit</a>
+      <form method="POST" action="{{ url_for('attendance.staff_delete', staff_id=s.id) }}"
+            onsubmit="return confirm('Remove {{ s.full_name }}?')">
+        <button type="submit" class="text-sm text-red-500 hover:underline">Remove</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-center text-gray-400 py-8">No staff added yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

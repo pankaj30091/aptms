@@ -40,15 +40,19 @@ def create_app():
     login_manager.login_message_category = "warning"
 
     # Import models so Flask-Migrate can detect them
-    from app.models import user, audit  # noqa: F401
+    from app.models import user, audit, checkin, attendance  # noqa: F401
 
     from app.routes.auth import auth_bp
     from app.routes.users import users_bp
     from app.routes.dashboard import dashboard_bp
+    from app.routes.checkin import checkin_bp
+    from app.routes.attendance import attendance_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(checkin_bp)
+    app.register_blueprint(attendance_bp)
 
     @app.errorhandler(403)
     def forbidden(e):
