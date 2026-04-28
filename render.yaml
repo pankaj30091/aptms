@@ -2,6 +2,7 @@ services:
   - type: web
     name: aptms
     runtime: python
+    pythonVersion: "3.11.9"
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app --worker-class gthread --workers 2 --threads 4 --bind 0.0.0.0:$PORT --timeout 60
     envVars:
