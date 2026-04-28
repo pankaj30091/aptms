@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Login{% endblock %}
 
-{% block content %}
+{% block content_unauth %}
 <div class="w-full max-w-sm mx-auto">
   <div class="text-center mb-8">
     <h1 class="text-3xl font-bold text-primary">AptMS</h1>
@@ -39,10 +39,10 @@
         <label for="remember" class="text-sm text-gray-600">Remember me</label>
       </div>
       <button type="submit"
-              class="w-full py-3 bg-primary hover:bg-primary-dark text-white font-semibold rounded-xl transition-colors text-sm">
+              class="w-full py-3 bg-primary hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors text-sm">
         Sign in
       </button>
     </form>
   </div>
 </div>
-{% endblock %}
+{% endblock content_unauth %}

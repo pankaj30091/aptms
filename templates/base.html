@@ -16,14 +16,11 @@
       }
     }
   </script>
-  <style>
-    /* bottom nav safe area on iOS */
-    .bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
-  </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen">
 
 {% if current_user.is_authenticated %}
+
 <!-- Top bar -->
 <header class="fixed top-0 inset-x-0 z-40 bg-white border-b border-gray-200 h-14 flex items-center px-4 shadow-sm">
   <span class="font-bold text-primary text-lg flex-1">AptMS</span>
@@ -34,10 +31,8 @@
   </div>
 </header>
 
-<!-- Main content with top + bottom padding for fixed bars -->
 <main class="pt-14 pb-20 min-h-screen">
   <div class="max-w-2xl mx-auto px-4 py-4">
-
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
         <div class="mb-3 px-4 py-3 rounded-lg text-sm font-medium
@@ -49,13 +44,13 @@
         </div>
       {% endfor %}
     {% endwith %}
-
     {% block content %}{% endblock %}
   </div>
 </main>
 
-<!-- Bottom navigation (mobile-first) -->
-<nav class="bottom-nav fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 flex justify-around items-center h-16">
+<!-- Bottom navigation -->
+<nav class="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 flex justify-around items-center h-16"
+     style="padding-bottom: env(safe-area-inset-bottom)">
   <a href="{{ url_for('dashboard.index') }}"
      class="flex flex-col items-center gap-0.5 px-3 py-2 text-xs
        {% if request.endpoint == 'dashboard.index' %}text-primary font-semibold{% else %}text-gray-500{% endif %}">
@@ -94,7 +89,7 @@
   {% if current_user.is_admin %}
   <a href="{{ url_for('users.list_users') }}"
      class="flex flex-col items-center gap-0.5 px-3 py-2 text-xs
-       {% if 'users' in request.endpoint %}text-primary font-semibold{% else %}text-gray-500{% endif %}">
+       {% if request.endpoint and 'users' in request.endpoint %}text-primary font-semibold{% else %}text-gray-500{% endif %}">
     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -106,19 +101,12 @@
 </nav>
 
 {% else %}
+
+<!-- Unauthenticated: centered layout, no nav -->
 <main class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="fixed top-4 inset-x-4 z-50 px-4 py-3 rounded-lg text-sm font-medium
-        {% if category == 'danger' %}bg-red-50 text-red-700 border border-red-200
-        {% elif category == 'success' %}bg-green-50 text-green-700 border border-green-200
-        {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endwith %}
-  {% block content %}{% endblock %}
+  {% block content_unauth %}{% endblock %}
 </main>
+
 {% endif %}
 
 </body>
