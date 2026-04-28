@@ -17,7 +17,7 @@
   </a>
 </div>
 
-{% for freq, label in [('daily','Daily'),('weekly','Weekly'),('monthly','Monthly')] %}
+{% for freq, label in [('daily','Daily'),('weekly','Weekly'),('monthly','Monthly'),('one_off','One-off')] %}
 {% set group = defs | selectattr('frequency','eq',freq) | list %}
 {% if group %}
 <div class="mb-4">
@@ -33,6 +33,8 @@
         <p class="text-xs text-gray-400">Every {{ days[t.day_of_week] }}</p>
         {% elif t.frequency == 'monthly' and t.day_of_month %}
         <p class="text-xs text-gray-400">Day {{ t.day_of_month }} of month</p>
+        {% elif t.frequency == 'one_off' and t.one_off_date %}
+        <p class="text-xs text-gray-400">Due {{ t.one_off_date.strftime('%d %b %Y') }}</p>
         {% endif %}
       </div>
       <div class="flex items-center gap-3">

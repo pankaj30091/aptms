@@ -9,7 +9,7 @@ from app.utils.decorators import admin_required, manager_or_admin_required
 
 tasks_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
-FREQUENCIES = [("daily", "Daily"), ("weekly", "Weekly"), ("monthly", "Monthly")]
+FREQUENCIES = [("daily", "Daily"), ("weekly", "Weekly"), ("monthly", "Monthly"), ("one_off", "One-off")]
 DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
@@ -88,12 +88,21 @@ def new_task():
             flash("Title and frequency are required.", "danger")
             return render_template("tasks/form.html", task=None, frequencies=FREQUENCIES, days=DAYS_OF_WEEK)
 
+        one_off_date = None
+        if frequency == "one_off":
+            try:
+                one_off_date = date.fromisoformat(request.form.get("one_off_date", ""))
+            except ValueError:
+                flash("Please provide a valid due date for one-off tasks.", "danger")
+                return render_template("tasks/form.html", task=None, frequencies=FREQUENCIES, days=DAYS_OF_WEEK)
+
         t = TaskDefinition(
             title=title,
             description=description,
             frequency=frequency,
             day_of_week=day_of_week if frequency == "weekly" else None,
             day_of_month=day_of_month if frequency == "monthly" else None,
+            one_off_date=one_off_date,
             created_by=current_user.id,
         )
         db.session.add(t)
@@ -121,6 +130,13 @@ def edit_task(task_id):
             t.frequency = freq
         t.day_of_week = request.form.get("day_of_week", type=int) if t.frequency == "weekly" else None
         t.day_of_month = request.form.get("day_of_month", type=int) if t.frequency == "monthly" else None
+        if t.frequency == "one_off":
+            try:
+                t.one_off_date = date.fromisoformat(request.form.get("one_off_date", ""))
+            except ValueError:
+                t.one_off_date = None
+        else:
+            t.one_off_date = None
         t.is_active = "is_active" in request.form
         db.session.flush()
         log_audit("UPDATE", "task_definitions", t.id, old_values=old, new_values=t.to_dict())

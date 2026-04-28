@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{% if sr %}Edit Request{% else %}Log Service Request{% endif %}{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-3 mb-4">
+  <a href="{{ url_for('service_requests.index') }}" class="text-gray-400 hover:text-gray-600">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+  </a>
+  <h2 class="text-xl font-bold">{% if sr %}Edit Request{% else %}Log Request{% endif %}</h2>
+</div>
+
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+  <form method="POST" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
+      <input type="text" name="title" required value="{{ sr.title if sr else '' }}"
+             placeholder="e.g. Water leak in corridor"
+             class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Flat No.</label>
+        <input type="text" name="flat_number" value="{{ sr.flat_number if sr and sr.flat_number else '' }}"
+               placeholder="A-101"
+               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <select name="category" class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary">
+          <option value="">— Select —</option>
+          {% for val, label in categories %}
+          <option value="{{ val }}" {{ 'selected' if sr and sr.category == val else '' }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Resident Name</label>
+        <input type="text" name="resident_name" value="{{ sr.resident_name if sr and sr.resident_name else '' }}"
+               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+        <input type="tel" name="resident_phone" value="{{ sr.resident_phone if sr and sr.resident_phone else '' }}"
+               class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+      <select name="priority" class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary">
+        {% for val, label in priorities %}
+        <option value="{{ val }}" {{ 'selected' if sr and sr.priority == val else ('selected' if not sr and val == 'normal' else '') }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+      <textarea name="description" rows="3"
+                class="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none">{{ sr.description if sr and sr.description else '' }}</textarea>
+    </div>
+    <button type="submit" class="w-full py-3 bg-primary hover:bg-blue-700 text-white font-semibold rounded-xl text-sm">
+      {% if sr %}Save Changes{% else %}Log Request{% endif %}
+    </button>
+  </form>
+</div>
+{% endblock %}

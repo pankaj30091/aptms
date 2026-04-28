@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, timedelta
 from app import db
 from app.models.checkin import ManagerCheckin
 from app.models.leave import LeaveRequest
+from app.models.document import Document
+from app.models.service_request import ServiceRequest
 from app.services.leave import fiscal_year_for
 from app.services.task import completion_rate
 
@@ -41,6 +43,18 @@ def index():
     # Task completion today
     rate = completion_rate(today)
 
+    # Expiring documents (within 60 days or already expired)
+    soon = today + timedelta(days=60)
+    expiring_docs = Document.query.filter(
+        Document.end_date.isnot(None),
+        Document.end_date <= soon,
+    ).count()
+
+    # Open service requests
+    open_srs = ServiceRequest.query.filter(
+        ServiceRequest.status.in_(["open", "in_progress"])
+    ).count()
+
     return render_template(
         "dashboard/index.html",
         greeting=greeting,
@@ -48,4 +62,6 @@ def index():
         checkin_status=checkin_status,
         pending_leaves=pending_leaves,
         task_rate=rate,
+        expiring_docs=expiring_docs,
+        open_srs=open_srs,
     )

@@ -9,6 +9,8 @@ def is_due(task: TaskDefinition, on: date) -> bool:
         return task.day_of_week is not None and on.weekday() == task.day_of_week
     if task.frequency == "monthly":
         return task.day_of_month is not None and on.day == task.day_of_month
+    if task.frequency == "one_off":
+        return task.one_off_date == on
     return False
 
 

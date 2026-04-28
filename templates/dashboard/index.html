@@ -53,6 +53,26 @@
     <p class="text-xs text-gray-400 mt-1">awaiting approval</p>
   </a>
 
+  <!-- Service requests -->
+  <a href="{{ url_for('service_requests.index') }}"
+     class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Open Requests</p>
+    <p class="text-3xl font-bold mt-1 {{ 'text-orange-500' if open_srs > 0 else 'text-gray-400' }}">
+      {{ open_srs }}
+    </p>
+    <p class="text-xs text-gray-400 mt-1">pending service requests</p>
+  </a>
+
+  <!-- Expiring documents -->
+  <a href="{{ url_for('documents.index') }}"
+     class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Expiring Docs</p>
+    <p class="text-3xl font-bold mt-1 {{ 'text-red-500' if expiring_docs > 0 else 'text-gray-400' }}">
+      {{ expiring_docs }}
+    </p>
+    <p class="text-xs text-gray-400 mt-1">within 60 days</p>
+  </a>
+
   <!-- Quick links -->
   <a href="{{ url_for('attendance.index') }}"
      class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Documents{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h2 class="text-xl font-bold">Documents</h2>
+  {% if current_user.is_admin %}
+  <a href="{{ url_for('documents.new_document') }}"
+     class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-blue-700">
+    + Add
+  </a>
+  {% endif %}
+</div>
+
+<!-- Type filter -->
+<div class="flex gap-2 mb-4 overflow-x-auto pb-1">
+  <a href="{{ url_for('documents.index') }}"
+     class="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap
+       {{ 'bg-primary text-white' if not selected_type else 'bg-gray-100 text-gray-600' }}">All</a>
+  {% for val, label in doc_types %}
+  <a href="{{ url_for('documents.index', type=val) }}"
+     class="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap
+       {{ 'bg-primary text-white' if selected_type == val else 'bg-gray-100 text-gray-600' }}">
+    {{ label }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="space-y-3">
+  {% for doc in docs %}
+  {% set status = renewal_status(doc.end_date) %}
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 flex-wrap">
+          <p class="font-semibold text-sm">{{ doc.title }}</p>
+          {% if doc.doc_type %}
+          <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full capitalize">{{ doc.doc_type }}</span>
+          {% endif %}
+          {% if status == 'expired' %}
+          <span class="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full font-medium">Expired</span>
+          {% elif status == 'critical' %}
+          <span class="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full font-medium">Expires soon!</span>
+          {% elif status == 'warning' %}
+          <span class="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full font-medium">Renew soon</span>
+          {% endif %}
+        </div>
+        {% if doc.vendor_name %}
+        <p class="text-xs text-gray-500 mt-0.5">{{ doc.vendor_name }}</p>
+        {% endif %}
+        <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
+          {% if doc.start_date %}
+          <span>From {{ doc.start_date.strftime('%d %b %Y') }}</span>
+          {% endif %}
+          {% if doc.end_date %}
+          <span>To {{ doc.end_date.strftime('%d %b %Y') }}</span>
+          {% endif %}
+        </div>
+        {% if doc.document_url %}
+        <a href="{{ doc.document_url }}" target="_blank"
+           class="text-xs text-primary hover:underline mt-1 inline-block">View document →</a>
+        {% endif %}
+      </div>
+      {% if current_user.is_admin %}
+      <div class="flex flex-col gap-1">
+        <a href="{{ url_for('documents.edit_document', doc_id=doc.id) }}"
+           class="text-xs text-primary hover:underline">Edit</a>
+        <form method="POST" action="{{ url_for('documents.delete_document', doc_id=doc.id) }}"
+              onsubmit="return confirm('Delete this document?')">
+          <button type="submit" class="text-xs text-red-500 hover:underline">Delete</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <p class="text-center text-gray-400 py-8 text-sm">No documents added yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

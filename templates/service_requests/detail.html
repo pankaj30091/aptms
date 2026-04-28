@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}SR #{{ sr.id }} — {{ sr.title }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-3 mb-4">
+  <a href="{{ url_for('service_requests.index') }}" class="text-gray-400 hover:text-gray-600">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+  </a>
+  <h2 class="text-xl font-bold flex-1 truncate">SR #{{ sr.id }}</h2>
+  <a href="{{ url_for('service_requests.edit_request', sr_id=sr.id) }}"
+     class="text-xs text-primary font-semibold">Edit</a>
+</div>
+
+<!-- Request card -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+  <div class="flex items-center gap-2 flex-wrap mb-2">
+    <span class="text-xs px-2 py-0.5 rounded-full font-bold
+      {% if sr.priority == 'urgent' %}bg-red-100 text-red-700
+      {% elif sr.priority == 'high' %}bg-orange-100 text-orange-700
+      {% elif sr.priority == 'normal' %}bg-blue-100 text-blue-700
+      {% else %}bg-gray-100 text-gray-500{% endif %}">
+      {{ sr.priority | capitalize }}
+    </span>
+    {% if sr.category %}
+    <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full capitalize">{{ sr.category }}</span>
+    {% endif %}
+    <span class="text-xs px-2 py-0.5 rounded-full
+      {% if sr.status == 'resolved' or sr.status == 'closed' %}bg-green-100 text-green-700
+      {% elif sr.status == 'in_progress' %}bg-blue-100 text-blue-700
+      {% elif sr.status == 'cancelled' %}bg-gray-100 text-gray-400
+      {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+      {{ sr.status | replace('_',' ') | capitalize }}
+    </span>
+  </div>
+  <p class="font-semibold text-base mb-2">{{ sr.title }}</p>
+  {% if sr.description %}
+  <p class="text-sm text-gray-600 mb-3">{{ sr.description }}</p>
+  {% endif %}
+  <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500">
+    {% if sr.flat_number %}<span><span class="font-medium text-gray-700">Flat:</span> {{ sr.flat_number }}</span>{% endif %}
+    {% if sr.resident_name %}<span><span class="font-medium text-gray-700">Resident:</span> {{ sr.resident_name }}</span>{% endif %}
+    {% if sr.resident_phone %}<span><span class="font-medium text-gray-700">Phone:</span> {{ sr.resident_phone }}</span>{% endif %}
+    {% if sr.assigned_user %}<span><span class="font-medium text-gray-700">Assigned:</span> {{ sr.assigned_user.full_name }}</span>{% endif %}
+    <span><span class="font-medium text-gray-700">Logged:</span> {{ sr.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+    {% if sr.resolved_at %}
+    <span><span class="font-medium text-gray-700">Resolved:</span> {{ sr.resolved_at.strftime('%d %b %Y') }}</span>
+    {% endif %}
+  </div>
+  {% if sr.resolution_note %}
+  <div class="mt-3 p-3 bg-green-50 rounded-xl text-xs text-green-800">
+    <span class="font-semibold">Resolution:</span> {{ sr.resolution_note }}
+  </div>
+  {% endif %}
+</div>
+
+<!-- Status pipeline -->
+<div class="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+  {% for val, label in statuses %}
+  <div class="flex items-center gap-1 flex-shrink-0">
+    <div class="px-2 py-1 rounded-full text-xs font-semibold
+      {% if sr.status == val %}bg-primary text-white
+      {% elif sr.status in ['resolved','closed'] and val in ['open','in_progress','resolved'] %}bg-green-100 text-green-700
+      {% else %}bg-gray-100 text-gray-400{% endif %}">
+      {{ label }}
+    </div>
+    {% if not loop.last %}
+    <svg class="w-3 h-3 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Update form -->
+{% if sr.status not in ['closed', 'cancelled'] %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+  <h3 class="text-sm font-semibold mb-3">Add Update</h3>
+  <form method="POST" action="{{ url_for('service_requests.add_update', sr_id=sr.id) }}" class="space-y-3">
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">New Status</label>
+      <select name="new_status" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary">
+        {% for val, label in statuses %}
+        <option value="{{ val }}" {{ 'selected' if sr.status == val else '' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">Assign To</label>
+      <select name="assigned_to" class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary">
+        <option value="">— Unassigned —</option>
+        {% for m in managers %}
+        <option value="{{ m.id }}" {{ 'selected' if sr.assigned_to == m.id else '' }}>{{ m.full_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-600 mb-1">Note</label>
+      <textarea name="note" rows="2" placeholder="Optional note or resolution details…"
+                class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"></textarea>
+    </div>
+    <button type="submit" class="w-full py-2.5 bg-primary hover:bg-blue-700 text-white font-semibold rounded-xl text-sm">
+      Save Update
+    </button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Update timeline -->
+{% if sr.updates %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+  <h3 class="text-sm font-semibold mb-3">History</h3>
+  <div class="space-y-3">
+    {% for upd in sr.updates | sort(attribute='created_at', reverse=True) %}
+    <div class="flex gap-3">
+      <div class="flex flex-col items-center">
+        <div class="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0"></div>
+        {% if not loop.last %}<div class="w-px flex-1 bg-gray-200 mt-1"></div>{% endif %}
+      </div>
+      <div class="flex-1 pb-3">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs font-semibold text-gray-700">
+            {{ upd.old_status | replace('_',' ') | capitalize }} →
+            {{ upd.new_status | replace('_',' ') | capitalize }}
+          </span>
+          <span class="text-xs text-gray-400">by {{ upd.updater.full_name }}</span>
+          <span class="text-xs text-gray-400 ml-auto">{{ upd.created_at.strftime('%d %b, %H:%M') }}</span>
+        </div>
+        {% if upd.note %}
+        <p class="text-xs text-gray-600 mt-1">{{ upd.note }}</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}
