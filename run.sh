@@ -2,11 +2,11 @@
 set -e
 cd "$(dirname "$0")"
 
-source /home/psharma/envs/aptms/bin/activate
+source /home/psharma/envs/base/bin/activate
 
 # Run migrations and seed on first run
-flask db upgrade
+FLASK_APP=wsgi:app flask db upgrade
 python seed.py
 
 # Start dev server
-python wsgi.py
+FLASK_APP=wsgi:app flask run --host=0.0.0.0 --port=8200
