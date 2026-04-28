@@ -1,6 +1,5 @@
 """Run once to create the initial admin user and building config."""
 import os
-import sys
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,24 +11,18 @@ from app.models.user import User, BuildingConfig
 def seed():
     app = create_app()
     with app.app_context():
-        # Admin user
         email = os.environ.get("SEED_ADMIN_EMAIL", "admin@aptms.local")
         password = os.environ.get("SEED_ADMIN_PASSWORD", "changeme123")
 
-        if User.query.filter_by(email=email).first():
-            print(f"Admin {email} already exists, skipping.")
-        else:
-            admin = User(
-                email=email,
-                full_name="Admin",
-                role="admin",
-                is_active=True,
-            )
+        if not User.query.filter_by(email=email).first():
+            admin = User(email=email, full_name="Admin", role="admin", is_active=True)
             admin.set_password(password)
             db.session.add(admin)
+            db.session.commit()
             print(f"Created admin: {email} / {password}")
+        else:
+            print(f"Admin {email} already exists, skipping.")
 
-        # Building config
         if not BuildingConfig.query.first():
             config = BuildingConfig(
                 name=os.environ.get("BUILDING_NAME", "My Apartment Complex"),
@@ -38,9 +31,9 @@ def seed():
                 geofence_radius_m=int(os.environ.get("GEOFENCE_RADIUS_M", 50)),
             )
             db.session.add(config)
+            db.session.commit()
             print("Created building config.")
 
-        db.session.commit()
         print("Seed complete.")
 
 

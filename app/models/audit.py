@@ -5,12 +5,12 @@ from app import db
 class AuditLog(db.Model):
     __tablename__ = "audit_logs"
 
-    id = db.Column(db.BigInteger, primary_key=True)
-    performed_by = db.Column(db.BigInteger, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    performed_by = db.Column(db.Integer, nullable=False)
     user_email = db.Column(db.String(255), nullable=False)
     action = db.Column(db.String(20), nullable=False)  # CREATE, UPDATE, DELETE
     table_name = db.Column(db.String(100), nullable=False)
-    record_id = db.Column(db.BigInteger, nullable=False)
+    record_id = db.Column(db.Integer, nullable=False)
     old_values = db.Column(db.JSON)
     new_values = db.Column(db.JSON)
     ip_address = db.Column(db.String(45))

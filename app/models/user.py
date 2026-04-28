@@ -7,7 +7,7 @@ from app import db, login_manager
 class User(UserMixin, db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), nullable=False, unique=True, index=True)
     phone = db.Column(db.String(20))
     full_name = db.Column(db.String(255), nullable=False)
@@ -56,7 +56,7 @@ class User(UserMixin, db.Model):
 class BuildingConfig(db.Model):
     __tablename__ = "building_config"
 
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     latitude = db.Column(db.Numeric(10, 7), nullable=False)
     longitude = db.Column(db.Numeric(10, 7), nullable=False)

@@ -19,9 +19,12 @@ def create_app():
         static_folder="../static",
     )
 
-    app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
-    # Render provides postgres:// but SQLAlchemy requires postgresql://
-    db_url = os.environ["DATABASE_URL"].replace("postgres://", "postgresql://", 1)
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
+    # SQLite for local dev, PostgreSQL for VPS (Render provides postgres:// prefix)
+    db_url = os.environ.get(
+        "DATABASE_URL",
+        "sqlite:///" + os.path.join(os.path.dirname(os.path.dirname(__file__)), "aptms.db"),
+    ).replace("postgres://", "postgresql://", 1)
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["BUILDING_LATITUDE"] = float(os.environ.get("BUILDING_LATITUDE", 0))
