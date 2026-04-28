@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Leave Requests{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <div class="flex items-center gap-3">
+    <a href="{{ url_for('leave.index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <h2 class="text-xl font-bold">Leave Requests</h2>
+  </div>
+</div>
+
+<!-- Filter tabs -->
+<div class="flex gap-2 mb-4 overflow-x-auto pb-1">
+  {% for s, label in [('pending','Pending'),('approved','Approved'),('rejected','Rejected'),('all','All')] %}
+  <a href="{{ url_for('leave.admin_list', status=s) }}"
+     class="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap
+       {{ 'bg-primary text-white' if status_filter == s else 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+    {{ label }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="space-y-3">
+  {% for r in requests %}
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <div class="flex items-start justify-between mb-2">
+      <div>
+        <p class="font-semibold text-sm">{{ r.user.full_name }}</p>
+        <p class="text-xs text-gray-500 capitalize">
+          {{ r.leave_type }} · {{ r.start_date.strftime('%d %b') }}–{{ r.end_date.strftime('%d %b %Y') }}
+          · {{ r.total_days|int }} day(s)
+        </p>
+        {% if r.reason %}
+        <p class="text-xs text-gray-400 mt-1">{{ r.reason }}</p>
+        {% endif %}
+      </div>
+      <span class="text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0
+        {% if r.status == 'approved' %}bg-green-100 text-green-700
+        {% elif r.status == 'rejected' %}bg-red-100 text-red-600
+        {% elif r.status == 'cancelled' %}bg-gray-100 text-gray-500
+        {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+        {{ r.status }}
+      </span>
+    </div>
+
+    {% if r.status == 'pending' %}
+    <div class="flex gap-2 mt-3">
+      <form method="POST" action="{{ url_for('leave.approve', leave_id=r.id) }}" class="flex-1">
+        <input type="hidden" name="review_note" value="" />
+        <button type="submit" class="w-full py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-xl">
+          Approve
+        </button>
+      </form>
+      <form method="POST" action="{{ url_for('leave.reject', leave_id=r.id) }}" class="flex-1">
+        <input type="hidden" name="review_note" value="" />
+        <button type="submit" class="w-full py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl">
+          Reject
+        </button>
+      </form>
+    </div>
+    {% elif r.review_note %}
+    <p class="text-xs text-gray-400 mt-1 italic">Note: {{ r.review_note }}</p>
+    {% endif %}
+  </div>
+  {% else %}
+  <p class="text-center text-gray-400 py-8 text-sm">No {{ status_filter }} requests.</p>
+  {% endfor %}
+</div>
+{% endblock %}

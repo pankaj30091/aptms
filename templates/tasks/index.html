@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Tasks{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <div>
+    <h2 class="text-xl font-bold">Tasks</h2>
+    <p class="text-sm text-gray-500">{{ selected.strftime('%A, %d %B %Y') }}</p>
+  </div>
+  {% if current_user.is_admin %}
+  <a href="{{ url_for('tasks.manage') }}"
+     class="text-sm text-primary hover:underline">Manage</a>
+  {% endif %}
+</div>
+
+<!-- Date picker -->
+<form method="GET" class="flex gap-2 mb-4">
+  <input type="date" name="date" value="{{ selected.isoformat() }}"
+         class="flex-1 px-4 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+  <button type="submit" class="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-blue-700">Go</button>
+</form>
+
+<!-- Completion rate -->
+{% if tasks %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+  <div class="flex items-center justify-between mb-2">
+    <span class="text-sm font-semibold text-gray-700">Completion</span>
+    <span class="text-sm font-bold {{ 'text-green-600' if rate.rate == 100 else ('text-yellow-600' if rate.rate >= 50 else 'text-red-500') }}">
+      {{ rate.completed }}/{{ rate.due }} ({{ rate.rate }}%)
+    </span>
+  </div>
+  <div class="w-full bg-gray-100 rounded-full h-2">
+    <div class="h-2 rounded-full {{ 'bg-green-400' if rate.rate == 100 else ('bg-yellow-400' if rate.rate >= 50 else 'bg-red-400') }}"
+         style="width: {{ rate.rate }}%"></div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Task list -->
+<div class="space-y-3">
+  {% for task_def, completion in tasks %}
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4
+    {{ 'opacity-70' if completion else '' }}">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          {% if completion %}
+          <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {% else %}
+          <svg class="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+          </svg>
+          {% endif %}
+          <p class="font-semibold text-sm {{ 'line-through text-gray-400' if completion else '' }}">
+            {{ task_def.title }}
+          </p>
+        </div>
+        <div class="flex items-center gap-2 mt-1 ml-7">
+          <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 capitalize">
+            {{ task_def.frequency }}
+          </span>
+          {% if completion %}
+          <span class="text-xs text-gray-400">
+            Done by {{ completion.completer.full_name }} at {{ completion.completed_at.strftime('%H:%M') }}
+          </span>
+          {% endif %}
+        </div>
+        {% if completion and completion.notes %}
+        <p class="text-xs text-gray-400 mt-1 ml-7">{{ completion.notes }}</p>
+        {% endif %}
+        {% if task_def.description and not completion %}
+        <p class="text-xs text-gray-400 mt-1 ml-7">{{ task_def.description }}</p>
+        {% endif %}
+      </div>
+
+      {% if not completion %}
+      <button onclick="document.getElementById('complete-modal-{{ task_def.id }}').classList.remove('hidden')"
+              class="flex-shrink-0 px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-blue-700">
+        Done
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Complete modal -->
+  {% if not completion %}
+  <div id="complete-modal-{{ task_def.id }}"
+       class="hidden fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 pb-6">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-5 shadow-xl">
+      <h3 class="font-bold text-gray-900 mb-1">Mark Complete</h3>
+      <p class="text-sm text-gray-500 mb-4">{{ task_def.title }}</p>
+      <form method="POST" action="{{ url_for('tasks.complete') }}">
+        <input type="hidden" name="task_def_id" value="{{ task_def.id }}" />
+        <input type="hidden" name="due_date" value="{{ selected.isoformat() }}" />
+        <textarea name="notes" rows="2" placeholder="Notes (optional)"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary resize-none"></textarea>
+        <div class="flex gap-2">
+          <button type="button"
+                  onclick="document.getElementById('complete-modal-{{ task_def.id }}').classList.add('hidden')"
+                  class="flex-1 py-2.5 border border-gray-300 text-gray-600 text-sm font-semibold rounded-xl">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="flex-1 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-blue-700">
+            Confirm
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="text-center py-12">
+    <p class="text-gray-400 text-sm">No tasks due on this date.</p>
+    {% if current_user.is_admin %}
+    <a href="{{ url_for('tasks.new_task') }}" class="mt-2 inline-block text-primary hover:underline text-sm">
+      Create a task →
+    </a>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

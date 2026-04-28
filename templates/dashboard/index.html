@@ -7,32 +7,64 @@
   <p class="text-sm text-gray-500">{{ today }}</p>
 </div>
 
-<div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-  <!-- Placeholder cards — will be wired up in later phases -->
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 col-span-2 sm:col-span-1">
-    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Check-in Status</p>
-    <p class="text-3xl font-bold text-primary mt-1">—</p>
-    <p class="text-xs text-gray-500 mt-1">Coming soon</p>
-  </div>
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+<div class="grid grid-cols-2 gap-3">
+
+  <!-- Check-in status -->
+  {% if current_user.is_manager or current_user.is_admin %}
+  <a href="{{ url_for('checkin.index') }}"
+     class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 col-span-2 flex items-center justify-between">
+    <div>
+      <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Check-in Status</p>
+      {% if checkin_status == 'in' %}
+        <p class="text-2xl font-bold text-green-600 mt-1">Checked In</p>
+      {% elif checkin_status == 'out' %}
+        <p class="text-2xl font-bold text-gray-500 mt-1">Checked Out</p>
+      {% else %}
+        <p class="text-2xl font-bold text-yellow-500 mt-1">Not In Yet</p>
+      {% endif %}
+    </div>
+    <svg class="w-8 h-8 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+    </svg>
+  </a>
+  {% endif %}
+
+  <!-- Tasks today -->
+  <a href="{{ url_for('tasks.index') }}"
+     class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
     <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Tasks Today</p>
-    <p class="text-3xl font-bold text-green-600 mt-1">—</p>
-    <p class="text-xs text-gray-500 mt-1">Coming soon</p>
-  </div>
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Open Requests</p>
-    <p class="text-3xl font-bold text-orange-500 mt-1">—</p>
-    <p class="text-xs text-gray-500 mt-1">Coming soon</p>
-  </div>
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Pending Leaves</p>
-    <p class="text-3xl font-bold text-yellow-500 mt-1">—</p>
-    <p class="text-xs text-gray-500 mt-1">Coming soon</p>
-  </div>
-  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Expiring Docs</p>
-    <p class="text-3xl font-bold text-red-500 mt-1">—</p>
-    <p class="text-xs text-gray-500 mt-1">Coming soon</p>
-  </div>
+    <p class="text-3xl font-bold mt-1
+      {{ 'text-green-600' if task_rate.rate == 100 else ('text-yellow-500' if task_rate.rate >= 50 else 'text-red-500') }}">
+      {{ task_rate.rate }}%
+    </p>
+    <p class="text-xs text-gray-400 mt-1">{{ task_rate.completed }}/{{ task_rate.due }} done</p>
+  </a>
+
+  <!-- Pending leaves -->
+  <a href="{{ url_for('leave.admin_list') if current_user.is_admin else url_for('leave.index') }}"
+     class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">
+      {{ 'Pending Leaves' if current_user.is_admin else 'My Leaves' }}
+    </p>
+    <p class="text-3xl font-bold mt-1 {{ 'text-yellow-500' if pending_leaves > 0 else 'text-gray-400' }}">
+      {{ pending_leaves }}
+    </p>
+    <p class="text-xs text-gray-400 mt-1">awaiting approval</p>
+  </a>
+
+  <!-- Quick links -->
+  <a href="{{ url_for('attendance.index') }}"
+     class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Attendance</p>
+    <p class="text-sm font-semibold text-primary mt-2">Mark today →</p>
+  </a>
+
+  <a href="{{ url_for('leave.index') }}"
+     class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+    <p class="text-xs text-gray-400 uppercase tracking-wide font-medium">Leave</p>
+    <p class="text-sm font-semibold text-primary mt-2">Apply / view →</p>
+  </a>
+
 </div>
 {% endblock %}
